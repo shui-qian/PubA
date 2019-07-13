@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+    <title>javascript获得鼠标位置</title>
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+</head>
+<body id="testDiv" style="border: 1px solid; width: 300px;height: 200px;">
+
+</body>
+<script type="text/javascript">
+    $('#testDiv').mousemove(function (e) {
+        var xx = e.originalEvent.x || e.originalEvent.layerX || 0;
+        var yy = e.originalEvent.y || e.originalEvent.layerY || 0;
+        $(this).text(xx + '---' + yy);
+        //var d = document.getElementById("div");获取某div在当前窗口的位置
+        //var dx = xx - p.getBoundingClientRect().left;
+        //var dy = yy - p.getBoundingClientRect().top;
+        //$(this).text(dx + '---' + dy);鼠标在该div内位置
+    });
+</script>
+</body>
