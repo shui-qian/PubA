@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>贪吃蛇</title>
+		<script src="jquery-1.9.1.min.js"></script>
+	</head>
+	<style type="text/css">
+		*{
+			margin: 0px auto;
+			padding: 0px;
+			font-family: '微软雅黑';
+		}
+		#score-div{
+			height: 40px;
+			border:1px solid red;
+		}
+		#map{
+			position: relative;
+			top: 20px;
+			/* left: 20px; */
+		}
+		.box{
+			background: #cedae4;
+			position: absolute;
+			/* top:0px;
+			left: 0px; */
+			float: left;
+			border: 1px solid #F0F8FF;
+		}
+		.food{
+			background: #4272de !important;
+		}
+		.snack{
+			background: #7c9ba2 !important;
+		}
+		#btn-gp{
+			position: relative;
+			border: 1px solid #e2e2e2;
+			top: 30px;
+			width: 400px;
+			height: 120px;
+			margin: 0px auto;
+			text-align: center;
+		}
+		.op-btn{
+			width: 40px;
+			height: 40px;
+			position: absolute;
+			line-height: 40px;
+			text-decoration: none;
+			background: #dce1ea;
+			border-radius: 20px;
+			color: #a2a4a7;
+			font-weight: 600;
+		}
+		.op-btn-st{
+			height: 20px;
+			position: absolute;
+			line-height: 20px;
+			text-decoration: none;
+			background: #dce1ea;
+			border-radius: 3px;
+			color: #a2a4a7;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 5px;
+		}
+	</style>
+	<body>
+		<!-- <div id="score-div"></div> -->
+		<div id="map">
+			<div class="box"></div>
+		</div>
+		<div id="btn-gp">
+			<a href="javascript:void(0)" class="op-btn" style="top: 0; left: 40px" onclick="key_op('up');">上</a>
+			<a href="javascript:void(0)" class="op-btn" style="top:40px; left:80px;" onclick="key_op('right');">右</a>
+			<a href="javascript:void(0)" class="op-btn" style="top: 40px; left: 0" onclick="key_op('left');">左</a>
+			<a href="javascript:void(0)" class="op-btn" style="top: 80px; left: 40px" onclick="key_op('down');">下</a>
+			<a href="javascript:void(0)" class="op-btn-st" style="top: 80px; left: 180px" onclick="location.reload();">重新开始</a>
+		</div>
+	</body>
+</html>
+<script>
+	var map_w = 400;
+	var map_h = 400;
+	var box_w = 20;
+	var box_h = 20;
+	var row = map_w/box_w;
+	var cols = map_h/box_h;
+	var boxlist = []; //初始盒子
+	var map = []; //地图 = 0空白, 1蛇, 2食物
+	var snack_list = [];
+	var n_position = ''; //当前方向
+	var nfood = 0;
+	$(function(){
+		draw_map();
+		snack_move();
+		//var s = [389,369,349,329,309,289,269,249];
+		//alert(s.indexOf(329))
+	});
+	
+	
+	// 绘制地图
+	draw_map = function(){
+		$('#map').css({'width': map_w, 'height': map_h});
+		//$('#map').append(_box);
+		for (var i = 0; i < row; i++) {
+			map[i] = [];
+			 for (var j = 0; j < cols; j++) {
+				map[i][j] = 0 ; //空白
+			} 
+		}
+		// 绘制 初始蛇,食物
+		//parseInt(Math.random()*row*cols)
+		var snack_w = parseInt(Math.random()*cols);
+		var snack_h = parseInt(Math.random()*row);
+		map[snack_w][snack_h] = 1; snack_list.push((snack_w*cols+snack_h)); //初始蛇
+		var food_w = parseInt(Math.random()*cols);
+		var food_h = parseInt(Math.random()*row);
+		map[food_w][food_h] = 2; //初始食物
+		nfood = food_w*cols + food_h;
+		console.log('food:' + nfood);
+		
+		for (var i = 0; i < map.length; i++) {
+			//var _box = '<div class="box" style="width:'+ box_w +'px; height:'+ box_h +'px; background: blue; top:'+ i*box_h +'px"></div>';
+			 for (var j = 0; j < map[i].length; j++) {
+				var _box = '<div id="index'+(row*i+j)+'" ';
+				switch (map[i][j]){
+					case 0:
+						_box += 'class="box"';
+						break;
+					case 1:
+						_box += 'class="box snack"';
+						break;
+					case 2:
+						_box += 'class="box food"';
+						break;
+					default:
+						break;
+				}
+				_box +='style="width:'+ box_w +'px; height:'+ box_h +'px; left:'+ j*box_w +'px; top:'+i*box_h+'px">';
+				//_box += '' + (row*i+j) + '<br>['+j+','+i+']';
+				_box += '</div>';
+				boxlist.push(_box);
+			} 
+		}
+		$('#map').append(boxlist.join(''));
+		console.log(snack_list);
+		 document.onkeydown = function(event){
+			// var left 37 , up 38, right 39, down 40
+			var enent = event || window.event;
+			var nkey = event.which || event.keyCode;
+			switch (nkey){
+				case 37:
+					// 不允许回头
+					if(n_position != 'right'){
+						n_position = 'left';
+					}
+					break;
+				case 38:
+					if(n_position != 'down'){
+						n_position = 'up';
+					}
+					break;
+				case 39:
+					if(n_position != 'left'){
+						n_position = 'right';
+					}
+					break;
+				case 40:
+					if(n_position != 'up'){
+						n_position = 'down';
+					}
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	
+	// 食物生成器
+	cr_food = function(){
+		while(snack_list.indexOf(nfood) >= 0){
+			nfood = parseInt(Math.random()*row*cols);
+		}
+		$('#index' + nfood).addClass('food');
+	}
+	
+	snack_move = function(){
+		var snack_head = snack_list[0];
+		switch (n_position){
+			case 'left':
+				if(snack_head%cols == 0){
+					gameover();
+					return ;
+				}
+				snack_head = snack_list[0] - 1;
+				break;
+			case 'right':
+				if(snack_head%cols == (cols-1)){
+					gameover();
+					return ;
+				}
+				snack_head = snack_list[0] + 1;
+				break;
+			case 'up':
+				if(snack_head <= cols){
+					gameover();
+					return ;
+				}
+				snack_head = snack_list[0] - cols;
+				break;
+			case 'down':
+				if(snack_head >= row*(cols-1)){
+					gameover();
+					return ;
+				}
+				snack_head = snack_list[0] + cols;
+				break;
+			default:
+				break;
+		}
+		//吃到自己 游戏结束
+		for (var i = 0; i < snack_list.length; i++) {
+			if(snack_list[i] == snack_head && i>1){
+				gameover();
+				return;
+			}
+		} 
+		// 向蛇数组前面插入头
+		snack_list.unshift(snack_head);
+		// 删除不属于蛇的尾巴
+		var snack_tail = snack_list.pop();
+		$('#index' + snack_tail).removeClass('snack');
+		
+		//吃了食物 食物变成尾巴
+		if(nfood == snack_list[0]){
+			//alert('吃');
+			snack_list.unshift(nfood);
+			$('#index' + nfood).removeClass('food');
+			cr_food();//生成食物
+		}
+		// 重绘制蛇
+		for (var i = 0; i < snack_list.length; i++) {
+			$('#index' + snack_list[i]).addClass('snack');
+		}
+		$('#score-div').empty().text(snack_list.toString() + '['+snack_head+']' + snack_list.indexOf(snack_head));
+		setTimeout('snack_move()', 300);
+	}
+	
+	key_op = function(op){
+		n_position = op;
+	}
+	
+	gameover = function(){
+		alert('游戏结束');
+	}
+</script>
